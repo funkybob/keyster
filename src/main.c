@@ -18,18 +18,16 @@ typedef struct node {
     char *key;
 } node;
 
-#define CMPARATOR(x,y) (strcmp(x->key, y->key))
+#define COMPARATOR(x,y) (strcmp(x->key, y->key))
 
-SGLIB_DEFINE_RBTREE_PROTOTYPES(node, left, right, colour_field, CMPARATOR);
-SGLIB_DEFINE_RBTREE_FUNCTIONS(node, left, right, colour_field, CMPARATOR);
+SGLIB_DEFINE_RBTREE_PROTOTYPES(node, left, right, colour_field, COMPARATOR);
+SGLIB_DEFINE_RBTREE_FUNCTIONS(node, left, right, colour_field, COMPARATOR);
 
 node *root;
 
 static void alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
-  /* libuv suggests a buffer size but leaves it up to us to create one of any size we see fit */
   buf->base = malloc(size);
   buf->len = size;
-  // if (buf->base == NULL) log_error("alloc_cb buffer didn't properly initialize");
 }
 
 static void on_send(uv_udp_send_t* req, int status) {
