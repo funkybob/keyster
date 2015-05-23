@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <string.h> // strlen
 #include <ctype.h>  // isspace
 
 #include <netinet/in.h>
@@ -71,6 +71,10 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
         // printf("No read and NULL address\n");
     }
     else {
+        key_len = strlen(buf->base) - 1;
+        tmp.key = &buf->base[1];
+        tmp.data = &buf->base[key_len+2];
+        tmp.data_len = nread - key_len - 2;
 
         switch(buf->base[0]) {
         case 'X':
@@ -78,9 +82,6 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
             break;
 
         case 'G': // G[et]KEY{NUL}
-            key_len = strlen(buf->base) - 1;
-            tmp.key = &buf->base[1];
-
             link = sglib_node_find_member(root, &tmp);
             if(link == NULL) {
                 send_reply(handle, 'g', tmp.key, NULL, 0, addr);
@@ -90,8 +91,6 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
             break;
 
         case 'S':   // Set KEY{NUL}VALUE
-            key_len = strlen(buf->base) - 1;
-            tmp.key = &buf->base[1];
             link = sglib_node_find_member(root, &tmp);
             if(link == NULL) {
                 link = malloc(sizeof(node));
@@ -110,8 +109,6 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
             break;
 
         case 'D':   // DELETE KEY{NUL}
-            key_len = strlen(buf->base) - 1;
-            tmp.key = &buf->base[1];
             result = sglib_node_delete_if_member(&root, &tmp, &link);
             // Free the node
             if(result > 0) {
@@ -144,7 +141,8 @@ int main(int argc, char **argv) {
 
     // create our address ... tedium
     memset(&addr, 0, sizeof(struct sockaddr_in));
-    addr.sin_len = sizeof(struct sockaddr_in);
+    // uv_ip4_addr
+    // addr.sin_len = sizeof(struct sockaddr_in);
     addr.sin_family = AF_INET;
     addr.sin_port = htons(6347);
 
