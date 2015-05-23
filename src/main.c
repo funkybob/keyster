@@ -9,13 +9,13 @@
 #include "sglib.h"
 
 typedef struct node {
+    char *data;
+    char *key;
+    size_t data_len;
+
     struct node *left;
     struct node *right;
     char colour_field;
-
-    size_t data_len;
-    char *data;
-    char *key;
 } node;
 
 #define COMPARATOR(x,y) (strcmp(x->key, y->key))
