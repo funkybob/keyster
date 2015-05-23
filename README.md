@@ -56,3 +56,8 @@ Deletes the key, returning the value if it existed.
     d<key>\x00
     d<key>\x00<value>
 
+
+
+## Internals
+
+Currenltly the system uss lubuv as an asynchronous event loop, and a Red-Black tree as implemented by SGLib for key/value storage.
