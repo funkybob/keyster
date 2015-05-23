@@ -6,6 +6,11 @@ Experiments in key/value storage.
 
 Keyster is a trivial key/value store which talks over UDP.
 
+## Requirements
+
+- sgvlib 1.0.4
+- libuv 1.5.0
+
 ## Protocol
 
 Commands are sent to the server on socket 6347.
@@ -57,7 +62,6 @@ Deletes the key, returning the value if it existed.
     d<key>\x00<value>
 
 
-
 ## Internals
 
-Currenltly the system uss lubuv as an asynchronous event loop, and a Red-Black tree as implemented by SGLib for key/value storage.
+Currenltly the system uses lubuv as an event loop, and a Red-Black tree as implemented by SGLib for key/value storage.
