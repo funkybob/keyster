@@ -71,12 +71,12 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
         // printf("No read and NULL address\n");
     }
     else {
-        key_len = strnlen(buf->base, nread);
-        if(key_len == nread) {
+        tmp.key = &buf->base[1];
+        key_len = strnlen(tmp.key, nread-1);
+        if(key_len == nread-1) {
             // bad packet!
             goto out;
         }
-        tmp.key = &buf->base[1];
         tmp.data = &buf->base[key_len+2];
         tmp.data_len = nread - key_len - 2;
 
