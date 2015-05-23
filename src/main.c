@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <string.h> // strlen
 #include <ctype.h>  // isspace
-
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <unistd.h> // getopt
+#include <netinet/in.h> // sockaddr_in
+#include <arpa/inet.h> // htons
 #include <uv.h>
 #include "sglib.h"
 
@@ -134,17 +134,32 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
 int main(int argc, char **argv) {
     uv_loop_t loop;
     uv_udp_t skt;
+
     struct sockaddr_in addr;
+
+    char *host = NULL;
+    int port = 6347;
+
+    int opt;
 
     // empty the list;
     root = NULL;
 
-    // create our address ... tedium
-    memset(&addr, 0, sizeof(struct sockaddr_in));
-    // uv_ip4_addr
-    // addr.sin_len = sizeof(struct sockaddr_in);
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(6347);
+    while ((opt = getopt(argc, argv, "a:p:")) != -1) {
+        switch (opt) {
+        case 'a':
+            host = optarg;
+            break;
+        case 'p':
+            port = atoi(optarg);
+            break;
+        default:
+            fprintf(stderr, "Usage: %s [-a bindto] [-p port]\n", argv[0]);
+            exit(-1);
+        }
+    }
+
+    uv_ip4_addr((host == NULL) ? "127.0.0.1" : host, port, &addr);
 
     uv_loop_init(&loop);
 
