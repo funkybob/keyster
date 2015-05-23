@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h> // strlen
+#include <string.h> // strlen, strnlen
 #include <ctype.h>  // isspace
 #include <unistd.h> // getopt
 #include <netinet/in.h> // sockaddr_in
@@ -71,7 +71,11 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
         // printf("No read and NULL address\n");
     }
     else {
-        key_len = strlen(buf->base) - 1;
+        key_len = strnlen(buf->base, nread);
+        if(key_len == nread) {
+            // bad packet!
+            goto out;
+        }
         tmp.key = &buf->base[1];
         tmp.data = &buf->base[key_len+2];
         tmp.data_len = nread - key_len - 2;
@@ -127,7 +131,7 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
             break;
         }
     }
-
+out:
     free(buf->base);
 }
 
@@ -142,7 +146,7 @@ int main(int argc, char **argv) {
 
     int opt;
 
-    // empty the list;
+    // ensure the tree is blank;
     root = NULL;
 
     while ((opt = getopt(argc, argv, "a:p:")) != -1) {
