@@ -59,6 +59,7 @@ static void send_reply(uv_udp_t* handle, char cmd, char* key, char *data, size_t
 }
 
 static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned flags) {
+    struct sglib_node_iterator it;
     node tmp, *link;
     size_t key_len;
     int result;
@@ -124,6 +125,18 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
                 send_reply(handle, 'd', tmp.key, NULL, 0, addr);
             }
             break;
+
+        case 'Z':   // Zero
+            for(link=sglib_node_it_init(&it, root); link != NULL; link=sglib_node_it_next(&it)) {
+                free(link->key);
+                free(link->data);
+                free(link);
+            }
+            // Don't bother deleting items from the tree.
+            // Once we've freed all the memory, just null the root.
+            // XXX Not even remotely thread safe!
+            root = NULL;
+            send_reply(handle, 'z', "", NULL, 0, addr);
 
         default:
             // Error?
