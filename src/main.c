@@ -25,7 +25,7 @@ SGLIB_DEFINE_RBTREE_FUNCTIONS(node, left, right, colour_field, COMPARATOR);
 
 node *root;
 
-static void alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
+static void on_alloc(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
   buf->base = malloc(size);
   buf->len = size;
 }
@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
     // listen to the world
     uv_udp_init(&loop, &skt);
     uv_udp_bind(&skt, (const struct sockaddr *)&addr, 0);
-    uv_udp_recv_start(&skt, alloc_cb, on_recv);
+    uv_udp_recv_start(&skt, on_alloc, on_recv);
 
     uv_run(&loop, UV_RUN_DEFAULT);
 
