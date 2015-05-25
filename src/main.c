@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h> // strlen, strnlen
-#include <ctype.h>  // isspace
+#include <ctype.h>  // isspace, tolower
 #include <unistd.h> // getopt
 #include <netinet/in.h> // sockaddr_in
 #include <arpa/inet.h> // htons
@@ -101,15 +101,14 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
             if(link == NULL) {
                 link = malloc(sizeof(node));
                 link->key = strdup(tmp.key);
-                link->data_len = nread - key_len - 1;
+                link->data_len = tmp.data_len;
                 link->data = malloc(link->data_len);
                 memcpy(link->data, &buf->base[key_len+2], link->data_len);
                 sglib_node_add(&root, link);
             } else if(buf->base[0] == 'S') {
                 // XXX Should change response to indicate if set
-                free(link->data);
-                link->data_len = nread - key_len - 1;
-                link->data = malloc(link->data_len);
+                link->data_len = tmp.data_len;
+                link->data = realloc(link->data, link->data_len);
                 memcpy(link->data, &buf->base[key_len+2], link->data_len);
             }
             send_reply(handle, tolower(buf->base[0]), link->key, link->data, link->data_len, addr);
