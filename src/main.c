@@ -95,6 +95,7 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
             }
             break;
 
+        case 'A':   // Add KEY{NUL}VALUE
         case 'S':   // Set KEY{NUL}VALUE
             link = sglib_node_find_member(root, &tmp);
             if(link == NULL) {
@@ -104,13 +105,14 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
                 link->data = malloc(link->data_len);
                 memcpy(link->data, &buf->base[key_len+2], link->data_len);
                 sglib_node_add(&root, link);
-            } else {
+            } else if(buf->base[0] == 'S') {
+                // XXX Should change response to indicate if set
                 free(link->data);
                 link->data_len = nread - key_len - 1;
                 link->data = malloc(link->data_len);
                 memcpy(link->data, &buf->base[key_len+2], link->data_len);
             }
-            send_reply(handle, 's', link->key, link->data, link->data_len, addr);
+            send_reply(handle, tolower(buf->base[0]), link->key, link->data, link->data_len, addr);
             break;
 
         case 'D':   // DELETE KEY{NUL}
@@ -144,6 +146,7 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
             break;
         }
     }
+
 out:
     free(buf->base);
 }
