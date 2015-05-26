@@ -156,15 +156,16 @@ int main(int argc, char **argv) {
 
     struct sockaddr_in addr;
 
-    char *host = NULL;
+    char *host = "127.0.0.1";
     int port = 6347;
+    int verbose = 0;
 
     int opt;
 
     // ensure the tree is blank;
     root = NULL;
 
-    while ((opt = getopt(argc, argv, "a:p:")) != -1) {
+    while ((opt = getopt(argc, argv, "a:p:v")) != -1) {
         switch (opt) {
         case 'a':
             host = optarg;
@@ -172,13 +173,29 @@ int main(int argc, char **argv) {
         case 'p':
             port = atoi(optarg);
             break;
+        case 'v':
+            verbose += 1;
+            break;
         default:
             fprintf(stderr, "Usage: %s [-a bindto] [-p port]\n", argv[0]);
             exit(-1);
         }
     }
 
-    uv_ip4_addr((host == NULL) ? "127.0.0.1" : host, port, &addr);
+    uv_ip4_addr(host, port, &addr);
+
+    // spam about the system
+    if(verbose > 0) {
+        int i, c;
+        uv_cpu_info_t *cpus;
+
+        uv_cpu_info(&cpus, &c);
+
+        for(i=0; i<c; i++) {
+            printf("CPU %d: %s (%d MHz)\n", i, cpus[i].model, cpus[i].speed);
+        }
+        uv_free_cpu_info(cpus, c);
+    }
 
     uv_loop_init(&loop);
 
@@ -187,6 +204,9 @@ int main(int argc, char **argv) {
     uv_udp_bind(&skt, (const struct sockaddr *)&addr, 0);
     uv_udp_recv_start(&skt, on_alloc, on_recv);
 
+    if(verbose > 0) {
+        printf("Listening [%s:%d]\n", host, port);
+    }
     uv_run(&loop, UV_RUN_DEFAULT);
 
     uv_loop_close(&loop);
