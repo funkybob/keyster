@@ -5,6 +5,7 @@
 #include <unistd.h> // getopt
 #include <netinet/in.h> // sockaddr_in
 #include <arpa/inet.h> // htons
+#include <syslog.h>
 #include <uv.h>
 #include "sglib.h"
 
@@ -139,6 +140,15 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const 
             root = NULL;
             send_reply(handle, 'z', "", NULL, 0, addr);
 
+        case '_':   // Log stats
+        {
+            size_t rss;
+            int count = sglib_node_len(root);
+            uv_resident_set_memory(&rss);
+            // syslog(LOG_INFO, "Total %d keys, using %zdkB RAM", count, rss);
+            printf("Total %d keys, using %zdkB RAM\n", count, rss/1024);
+            break;
+        }
         default:
             // Error?
             printf("Unknown command: %c", buf->base[0]);
@@ -181,6 +191,8 @@ int main(int argc, char **argv) {
             exit(-1);
         }
     }
+
+    // openlog("Keyster", LOG_CONS | LOG_PID, LOG_DAEMON);
 
     uv_ip4_addr(host, port, &addr);
 
