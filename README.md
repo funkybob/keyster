@@ -8,7 +8,7 @@ Keyster is a trivial key/value store which talks over UDP.
 
 ## Requirements
 
-- sgvlib 1.0.4
+- sglib 1.0.4
 - libuv 1.5.0
 
 ## Protocol
