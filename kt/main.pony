@@ -10,18 +10,20 @@ class HandleUDPNotify is UDPNotify
 
   fun ref received(sock: UDPSocket ref, data: Array[U8] iso, from: NetAddress) =>
     let src = recover val consume data end
-    var cmd: String = ""
-    var key: String = ""
-    var value: String = ""
+    if src.size() == 0 then
+      return
+    end
+    var cmd = String.from_array(recover val src.slice(0, 1) end)
+    var key : String = ""
+    var value : String= ""
 
-    cmd = String.from_array(recover val src.slice(0, 1) end)
     if src.size() > 1 then
       try
         key = String.from_array(recover val src.slice(1, src.find(0, 0)) end)
+        if src.size() > (2 + key.size()) then
+          value = String.from_array(recover val src.slice(key.size() + 2) end)
+        end
       end
-    end
-    if src.size() > (2 + key.size()) then
-      value = String.from_array(recover val src.slice(key.size() + 2) end)
     end
 
     var result: String = ""
