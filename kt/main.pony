@@ -3,7 +3,7 @@ use "logger"
 use "net"
 
 class HandleUDPNotify is UDPNotify
-  let hmap: HashMap[String, String, HashEq[String]] = HashMap[String, String, HashEq[String]].create()
+  let _hmap: HashMap[String, String, HashEq[String]] = HashMap[String, String, HashEq[String]].create()
 
   fun ref not_listening(sock: UDPSocket ref): None val =>
     None
@@ -13,27 +13,18 @@ class HandleUDPNotify is UDPNotify
     if src.size() == 0 then
       return
     end
-    var cmd = String.from_array(recover val src.slice(0, 1) end)
-    var key : String = ""
-    var value : String= ""
-
-    if src.size() > 1 then
-      try
-        key = String.from_array(recover val src.slice(1, src.find(0, 0)) end)
-        if src.size() > (2 + key.size()) then
-          value = String.from_array(recover val src.slice(key.size() + 2) end)
-        end
-      end
-    end
+    var cmd = String.from_array(src.trim(0, 1))
+    var key = try String.from_array(src.trim(1, src.find(0, 0))) else "" end
+    var value = String.from_array(src.trim(2 + key.size()))
 
     var result: String = ""
     match cmd
-    | "G" => try result = hmap(key) end
-    | "A" => try hmap.insert_if_absent(key, value) end
-    | "S" => try hmap.insert(key, value) end
-    | "D" => try hmap.remove(key) end
+    | "G" => try result = _hmap(key) end
+    | "A" => try _hmap.insert_if_absent(key, value) end
+    | "S" => try _hmap.insert(key, value) end
+    | "D" => try _hmap.remove(key) end
     else
-      result = hmap.size().string()
+      result = _hmap.size().string()
     end
 
     var rsp: Array[U8] iso = recover iso Array[U8].create(2 + key.size() + result.size()) end
